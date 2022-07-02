@@ -2,6 +2,7 @@ package Dog;
 
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.testng.annotations.Test;
 
 public class DogTest {    
     @Test
