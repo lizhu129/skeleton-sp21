@@ -184,6 +184,9 @@ public class LinkedListDeque<T> implements Deque<T> {
             System.out.println(i);
         }
 
+        LinkedListDeque<Integer> b = new LinkedListDeque<Integer>();
+        b = a;
+        System.out.println(a.equals(3));
 
 
     }
