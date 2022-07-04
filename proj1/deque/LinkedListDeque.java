@@ -128,13 +128,9 @@ public class LinkedListDeque<T> implements Deque<T> {
 
         @Override
         public T next() {
-            ListNode<T> p = sentinel.next;
-            if (hasNext()) {
-                T returnItem = p.item;
-                p = p.next;
-                return returnItem;
-            }
-            return null;
+            T returnItem = get(position);
+            position++;
+            return returnItem;
         }
     }
 
@@ -180,6 +176,15 @@ public class LinkedListDeque<T> implements Deque<T> {
 
         System.out.println(a.get(1));
         System.out.println(a.getRecursive(1));
+
+        Iterator<Integer> iterator = a.iterator();
+
+        while (iterator.hasNext()) {
+            int i = iterator.next();
+            System.out.println(i);
+        }
+
+
 
     }
 
