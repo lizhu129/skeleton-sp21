@@ -3,7 +3,7 @@ package speed;
 import java.util.HashMap;
 import java.io.IOException;
 import java.util.Scanner;
-import edu.princeton.cs.algs4.Stopwatch;
+import bstmap.Stopwatch;
 
 import hashmap.Map61B;
 import hashmap.ULLMap;

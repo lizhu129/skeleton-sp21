@@ -1,6 +1,6 @@
 package speed;
 
-import edu.princeton.cs.algs4.Stopwatch;
+import bstmap.Stopwatch;
 
 import java.io.IOException;
 import java.util.Scanner;
