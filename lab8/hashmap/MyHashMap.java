@@ -32,8 +32,8 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     private int m; // Hash Table size
     private int n; // Number of Key Value pairs
     private double maxLoad;
-    private static final int INIT_CAPACITY = 4;
-    private static final double MAX_LOAD = 1.5D;
+    private static final int INIT_CAPACITY = 16;
+    private static final double MAX_LOAD = 0.75;
     // You should probably define some more!
 
     /** Constructors */
@@ -147,7 +147,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         if (key == null) throw new IllegalArgumentException("argument to contains() is null");
         int i = hash(key);
         for (Node node : this.buckets[i]) {
-            if (node.key == key) {
+            if (node.key.equals(key)) {
                 return node.value;
             }
         }
@@ -244,6 +244,20 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     @Override
     public Iterator<K> iterator() {
         throw new UnsupportedOperationException();
+    }
+
+    public static void main(String[] args) {
+        MyHashMap<String, Integer> b = new MyHashMap<>();
+        for (int i = 0; i < 2; i++) {
+            b.put("hi" + i, 1);
+            System.out.println(b.get("hi" + i));
+        }
+
+        b.put("hello", 1);
+        System.out.println(b.get("hello"));
+
+
+
     }
 
 
