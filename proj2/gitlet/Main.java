@@ -1,7 +1,7 @@
 package gitlet;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @LiZhu TODO
  */
 public class Main {
 
@@ -9,16 +9,50 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty?
+       // If user input is empty, return error message and exit.
+        if (args.length == 0) {
+            Utils.exitWithError("Please enter a command.");
+        }
         String firstArg = args[0];
+
+        // If a user inputs a command that doesn’t exist, return error message and exit.
+        if (Utils.validCommand(firstArg, args.length) == -1) {
+            Utils.exitWithError("No command with that name exists.");
+        }
+        if (Utils.validCommand(firstArg, args.length) == 1) {
+            Utils.exitWithError("Incorrect operands.");
+        }
         switch(firstArg) {
+            /** "init", "add", "commit", "rm", "log", "global-log",
+             * "find", "status", "checkout", "branch", "rm-branch", "reset", "merge" */
             case "init":
                 // TODO: handle the `init` command
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
                 break;
-            // TODO: FILL THE REST IN
+            case "commit":
+                break;
+            case "rm":
+                break;
+            case "log":
+                break;
+            case "global-log":
+                break;
+            case "find":
+                break;
+            case "status":
+                break;
+            case "checkout":
+                break;
+            case "branch":
+                break;
+            case "rm-branch":
+                break;
+            case "reset":
+                break;
+            case "merge":
+                break;
         }
     }
 }
