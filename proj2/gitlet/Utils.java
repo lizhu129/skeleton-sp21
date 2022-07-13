@@ -244,45 +244,5 @@ class Utils {
         System.exit(0);
     }
 
-    /** Check if the command exists. */
-    static int validCommand(String s, int a) {
-        /** "init", "add", "commit", "rm", "log", "global-log",
-        * "find", "status", "checkout", "branch", "rm-branch", "reset", "merge" */
-        Map<String, Integer> commands = new HashMap<>();
-        commands.put("init", 1);
-        commands.put("add", 2);
-        commands.put("commit", 2);
-        commands.put("rm", 2);
-        commands.put("log", 1);
-        commands.put("global-log", 1);
-        commands.put("find", 2);
-        commands.put("status", 1);
-        commands.put("checkout", 4);
-        commands.put("branch", 2);
-        commands.put("rm-branch", 2);
-        commands.put("reset", 2);
-        commands.put("merge", 2);
-        if (!commands.containsKey(s)) {
-            return -1;
-        } else {
-            if (s.equals("checkout") && (a == 2 || a == 3 || a == 4)) {
-                return 0;
-            } else if (!s.equals("checkout") && commands.get(s) == a) {
-                return 0;
-            } else {
-                return 1;
-            }
-        }
-    }
-
-    public static void main(String[] args) {
-        Scanner scan = new Scanner(System.in);
-        System.out.println("Please provide your command");
-        String input = scan.nextLine();
-        String[] s = input.split(" ");
-        int a = validCommand(s[0], s.length);
-        System.out.println(a);
-
-    }
 
 }
