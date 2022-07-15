@@ -3,7 +3,6 @@ package gitlet;
 // TODO: any imports you need here
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date; // TODO: You'll likely use this in this class
 import java.util.HashMap;
 
@@ -23,21 +22,21 @@ public class Commit implements Serializable, Dumpable {
      */
 
     /** The message of this Commit. */
-    private Timestamp date;
+    private Date date;
     // Something that keeps track of what file this commit is tracking
     private String commitMessage;
     private String parentID;
     private HashMap<String, String> files;
 
     public Commit(String commitMessage, String parentID) {
-        this.date = new Timestamp(System.currentTimeMillis());
+        this.date = new Date(System.currentTimeMillis());
         this.commitMessage = commitMessage;
         this.parentID = parentID;
         this.files = new HashMap<>();
     }
 
     public Commit() {
-        this.date = new Timestamp(System.currentTimeMillis());
+        this.date = new Date(System.currentTimeMillis());
         this.commitMessage = "initial commit";
         this.parentID = null;
         this.files = null;
