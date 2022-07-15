@@ -1,5 +1,6 @@
 package gitlet;
 
+import java.io.File;
 import java.io.IOException;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
@@ -26,10 +27,10 @@ public class Main {
              * "find", "status", "checkout", "branch", "rm-branch", "reset", "merge" */
             case "init":
                 validateNumArgs("init", args, 1);
-                Repository.init();
+                Commands.init();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
+                validateNumArgs("init", args, 2);
                 break;
             case "commit":
                 break;
@@ -56,7 +57,6 @@ public class Main {
             default:
                 Utils.exitWithError("No command with that name exists.");
         }
-
     }
 
     public static void validateNumArgs(String cmd, String[] args, int n) {

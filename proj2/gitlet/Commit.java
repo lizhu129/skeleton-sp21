@@ -13,7 +13,7 @@ import java.util.HashMap;
  *
  *  @LiZhu TODO
  */
-public class Commit implements Serializable {
+public class Commit implements Serializable, Dumpable {
     /**
      * TODO: add instance variables here.
      *
@@ -44,9 +44,8 @@ public class Commit implements Serializable {
     }
 
 
-
-
-
-
-
+    @Override
+    public void dump() {
+        System.out.printf("date: %s%nmessage: %s%n", date , commitMessage);
+    }
 }

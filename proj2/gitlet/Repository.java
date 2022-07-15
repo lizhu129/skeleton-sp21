@@ -28,36 +28,38 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     /** The directory to store all objects. */
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
+    public static final File HEAD = join(GITLET_DIR, "HEAD");
+    public static final File INDEX = join(GITLET_DIR, "index"); // Staging area
+    public static final File REFS_HEADS = join(GITLET_DIR, "refs", "heads");
+    public static final File LOGS = join(GITLET_DIR, "logs"); //???
 
-    public static void init() throws IOException {
-        if (Repository.GITLET_DIR.exists()) {
+
+    public static void makeDirectory() throws IOException {
+        if (GITLET_DIR.exists()) {
             Utils.exitWithError("A Gitlet version-control system already exists in the current directory.");
         }
         GITLET_DIR.mkdir();
         OBJECTS_DIR.mkdir();
-        storeCommit(new Commit());
+        REFS_HEADS.mkdir();
+        HEAD.createNewFile();
+        writeContents(HEAD, "master");
+        // TODO: REFS_HEADS
 
-        // Get the current working directory
-        // Create a new commit with no parent
-        // Branches? HEAD?
-        // UID?
     }
-
-    private static void storeCommit (Commit a) throws IOException {
+    public static void storeCommit (Commit a) throws IOException {
         String commitName = sha1(serialize(a));
         File dir = join(OBJECTS_DIR, commitName.substring(0, 2));
         dir.mkdir();
         File file = join(dir, commitName);
         file.createNewFile();
         writeObject(file, a);
+
+        Dumpable obj = Utils.readObject(file, Dumpable.class);
+        obj.dump();
+        System.out.println("---");
     }
 
-    public static void commit() {
-        // Clone the HEAD commit
-        // Modify its message and timestamp according to user input
-        // Use the staging area in order to modify the files tracked by the new commit
-        // Write back any new object made or any modified objects read earlier
-    }
+
 
     public static void main(String[] args) {
 
