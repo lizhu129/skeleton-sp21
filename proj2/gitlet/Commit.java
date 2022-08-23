@@ -1,47 +1,64 @@
 package gitlet;
 
-// TODO: any imports you need here
 
 import java.io.Serializable;
-import java.util.Date; // TODO: You'll likely use this in this class
+import java.util.Date;
 import java.util.HashMap;
 
+import static gitlet.Utils.sha1;
+
+
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
  *
- *  @LiZhu TODO
+ *  @LiZhu
  */
 public class Commit implements Serializable, Dumpable {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Commit class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided one example for `message`.
-     */
-
-    /** The message of this Commit. */
+    private String UID;
+    private String shortUID = this.UID.substring(0, 5);
     private Date date;
-    // Something that keeps track of what file this commit is tracking
     private String commitMessage;
     private String parentID;
-    private HashMap<String, String> files;
+    private HashMap<String, String> fileMap;
 
-    public Commit(String commitMessage, String parentID) {
+    public Commit(String commitMessage, String parentID, HashMap<String, String> fileMap) {
         this.date = new Date(System.currentTimeMillis());
         this.commitMessage = commitMessage;
         this.parentID = parentID;
-        this.files = new HashMap<>();
+        this.fileMap = fileMap;
+        this.UID = sha1(this.date + this.commitMessage + this.parentID);
     }
 
     public Commit() {
-        this.date = new Date(System.currentTimeMillis());
+        this.date = new Date(0);
         this.commitMessage = "initial commit";
         this.parentID = null;
-        this.files = null;
+        this.fileMap = null;
+        this.UID = sha1(this.date + this.commitMessage);
     }
 
+    public String getUID() {
+        return UID;
+    }
+
+    public String getshortUID() {
+        return shortUID;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public String getCommitMessage() {
+        return commitMessage;
+    }
+
+    public String getParentID() {
+        return parentID;
+    }
+
+    public HashMap<String, String> getFileMap() {
+        return fileMap;
+    }
 
     @Override
     public void dump() {
