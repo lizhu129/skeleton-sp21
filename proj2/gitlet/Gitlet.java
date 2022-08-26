@@ -11,9 +11,9 @@ import static gitlet.Utils.*;
 public class Gitlet implements Serializable {
 
     private String head;
-    private String headBranch;
-    private HashMap<String, String> branches; //<Key=branch, value=commitID>
-    private TreeMap<String, String> commits; //???
+    private String headBranch; // Active branch
+    private HashMap<String, String> branches; //<Key=branch, value=commitID> split point???
+    private TreeMap<String, String> commits; // Key=commit ID; value = commitMessage?
     private Staging stagingArea;
 
     public Gitlet() {
@@ -27,7 +27,7 @@ public class Gitlet implements Serializable {
     static void init() {
         Repository.createRepository();
         Commit initCommit = new Commit();
-        Repository.saveObject(initCommit);
+
     }
 
 

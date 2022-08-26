@@ -3,7 +3,7 @@ package gitlet;
 import java.io.IOException;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @LiZhu TODO
+ *  @LiZhu
  */
 public class Main {
 
