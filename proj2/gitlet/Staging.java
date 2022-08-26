@@ -3,17 +3,21 @@ package gitlet;
 import java.io.Serializable;
 import java.util.HashMap;
 
+/** Represents the gitlet staging area.
+ *
+ *  @LiZhu
+ */
 public class Staging implements Serializable {
-    private HashMap<String, Blob> stagingAdd;
-    private HashMap<String, Blob> stagingDelete;
+    public HashMap<String, String> stagingAdd; // <filename, UID>
+    public HashMap<String, String> stagingRemove;
 
     public Staging() {
         this.stagingAdd = new HashMap<>();
-        this.stagingDelete = new HashMap<>();
+        this.stagingRemove = new HashMap<>();
     }
 
-    public void clear() {
-        this.stagingAdd = new HashMap<>();
-        this.stagingDelete = new HashMap<>();
+    public void clearStage(){
+        stagingAdd.clear();
+        stagingRemove.clear();
     }
 }

@@ -21,20 +21,26 @@ public class Main {
             Utils.message("Not in an initialized Gitlet directory.");
         }
 
+        Gitlet gitlet = new Gitlet();
+
         switch(firstArg) {
             /** "init", "add", "commit", "rm", "log", "global-log",
              * "find", "status", "checkout", "branch", "rm-branch", "reset", "merge" */
             case "init":
-                validateNumArgs("init", args, 1);
+                validateNumArgs(args, 1);
+                gitlet.init();
                 break;
             case "add":
-                validateNumArgs("init", args, 2);
-                String filename = args[1];
-
+                validateNumArgs(args, 2);
+                gitlet.add(args[1]);
                 break;
             case "commit":
+                validateNumArgs(args, 2);
+                gitlet.commit(args[1]);
                 break;
             case "rm":
+                validateNumArgs(args, 2);
+                gitlet.rm(args[1]);
                 break;
             case "log":
                 break;
@@ -59,7 +65,7 @@ public class Main {
         }
     }
 
-    public static void validateNumArgs(String cmd, String[] args, int n) {
+    public static void validateNumArgs(String[] args, int n) {
         if (args.length != n) {
             Utils.exitWithError("Incorrect operands.");
         }

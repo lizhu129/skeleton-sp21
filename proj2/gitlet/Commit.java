@@ -18,7 +18,7 @@ public class Commit implements Serializable, Dumpable {
     private Date date;
     private String commitMessage;
     private String parentID;
-    private HashMap<String, String> fileMap;
+    private HashMap<String, String> fileMap; // <filename, UID>
 
     public Commit(String commitMessage, String parentID, HashMap<String, String> fileMap) {
         this.date = new Date(System.currentTimeMillis());
@@ -60,6 +60,7 @@ public class Commit implements Serializable, Dumpable {
         return fileMap;
     }
 
+    // For testing purpose
     @Override
     public void dump() {
         System.out.printf("date: %s%nmessage: %s%n", date , commitMessage);
