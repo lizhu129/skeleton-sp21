@@ -47,10 +47,16 @@ public class Main {
                 gitlet.log();
                 break;
             case "global-log":
+                validateNumArgs(args, 1);
+                gitlet.globalLog();
                 break;
             case "find":
+                validateNumArgs(args, 2);
+                gitlet.find(args[1]);
                 break;
             case "status":
+                validateNumArgs(args, 1);
+                gitlet.status();
                 break;
             case "checkout":
                 break;
