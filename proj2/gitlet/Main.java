@@ -43,6 +43,8 @@ public class Main {
                 gitlet.rm(args[1]);
                 break;
             case "log":
+                validateNumArgs(args, 1);
+                gitlet.log();
                 break;
             case "global-log":
                 break;

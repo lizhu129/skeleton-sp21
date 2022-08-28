@@ -65,4 +65,5 @@ public class Commit implements Serializable, Dumpable {
     public void dump() {
         System.out.printf("date: %s%nmessage: %s%n", date , commitMessage);
     }
+
 }

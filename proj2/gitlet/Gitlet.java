@@ -3,13 +3,14 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.format.DateTimeFormatter;
 import java.util.TreeMap;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 
 public class Gitlet implements Serializable {
-    private TreeMap<String, String> commitTree; // Key=commit ID; value = commitMessage? Not sure...
+    private TreeMap<String, Commit> commitTree; // Key=commit ID; value = commitMessage? Not sure...
 
     public Gitlet() {
         this.commitTree = new TreeMap<>();
@@ -28,7 +29,7 @@ public class Gitlet implements Serializable {
         Staging stagingArea = new Staging();
         writeObject(INDEX, stagingArea);
         // ?????????? not sure
-        this.commitTree.put(initCommit.getUID(), initCommit.getCommitMessage());
+        this.commitTree.put(initCommit.getUID(), initCommit);
     }
 
     public void add(String filename) {
@@ -65,6 +66,8 @@ public class Gitlet implements Serializable {
         Commit currCommit = getCurrentCommit();
         Blob blob = new Blob(filename, file);
 
+        // TODO Maybe stagingRemove doesn't have to be HashMap, HashSet instead
+
         if (stagingArea.stagingAdd.containsKey(filename)) {
             stagingArea.stagingAdd.remove(filename);
         } else if (currCommit.getFileMap().containsKey(filename)) {
@@ -80,10 +83,46 @@ public class Gitlet implements Serializable {
 
 
     public void commit(String message) {
+        Staging stagingArea = readObject(INDEX, Staging.class);
+        if (stagingArea.stagingAdd.isEmpty() && stagingArea.stagingRemove.isEmpty()) {
+            throw error("No changes added to the commit.");
+        }
+        if (message.isEmpty()) {
+            throw error("Please enter a commit message.");
+        }
+        Commit currCommit = getCurrentCommit();
+        Commit newCommit = new Commit(message, currCommit.getUID(), currCommit.getFileMap());
 
+        /** Update fileMap in the current Commit */
+        for (String a : stagingArea.stagingAdd.keySet()) {
+            newCommit.getFileMap().put(a, stagingArea.stagingAdd.get(a));
+        }
+
+        for (String a : stagingArea.stagingRemove.keySet()) {
+            newCommit.getFileMap().remove(a);
+        }
+
+        /** Get current branch */
+        String currBranch = new File(readContentsAsString(HEAD)).getName();
+
+        saveCommit(newCommit, currBranch);
+        this.commitTree.put(newCommit.getUID(), newCommit);
+        stagingArea.clearStage();
+        writeObject(INDEX, stagingArea);
     }
 
+    public void log() {
+        // TODO not taken into consideration branching
+        for (String s : this.commitTree.keySet()) {
+            System.out.println("===");
+            System.out.println("commit " + s);
+            System.out.println("Date: " + this.commitTree.get(s).getDate());
+            System.out.println(this.commitTree.get(s).getCommitMessage());
+            System.out.println();
+        }
+    }
 
+    /** Helper methods */
 
     private void saveCommit(Commit commit, String branch) {
         /** Save commit as an object in commits folder */
