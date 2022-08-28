@@ -253,6 +253,18 @@ public class Gitlet implements Serializable {
                 }
             }
         }
+
+        for (String s : checkout.getFileMap().values()) {
+            copyFile(s);
+        }
+        for (String s : currCommit.getFileMap().keySet()) {
+            if (!checkout.getFileMap().containsKey(s)) {
+                restrictedDelete(join(CWD, s));
+            }
+        }
+        Staging stagingArea = readObject(INDEX, Staging.class);
+        stagingArea.clearStage();
+        writeObject(INDEX, stagingArea);
     }
 
 
@@ -270,12 +282,13 @@ public class Gitlet implements Serializable {
         }
         /** Store current branch head */
         File branchname = join(HEADS_DIR, branch);
+        writeContents(branchname, commit.getUID());
         if (branchname.exists()) {
             writeContents(branchname, commit.getUID());
         }
         try {
             branchname.createNewFile();
-            writeContents(branchname, commit.getUID());
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
