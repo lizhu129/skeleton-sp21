@@ -3,7 +3,7 @@ package gitlet;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.TreeMap;
 
 import static gitlet.Utils.sha1;
 
@@ -18,9 +18,9 @@ public class Commit implements Serializable, Dumpable {
     private Date date;
     private String commitMessage;
     private String parentID;
-    private HashMap<String, String> fileMap; // <filename, UID>
+    private TreeMap<String, String> fileMap; // <filename, UID>
 
-    public Commit(String commitMessage, String parentID, HashMap<String, String> fileMap) {
+    public Commit(String commitMessage, String parentID, TreeMap<String, String> fileMap) {
         this.date = new Date(System.currentTimeMillis());
         this.commitMessage = commitMessage;
         this.parentID = parentID;
@@ -56,8 +56,16 @@ public class Commit implements Serializable, Dumpable {
         return parentID;
     }
 
-    public HashMap<String, String> getFileMap() {
+    public TreeMap<String, String> getFileMap() {
         return fileMap;
+    }
+
+    public void print() {
+        System.out.println("===");
+        System.out.println("commit " + this.getUID());
+        System.out.println("Date: " + this.getDate());
+        System.out.println(this.getCommitMessage());
+        System.out.println();
     }
 
     // For testing purpose

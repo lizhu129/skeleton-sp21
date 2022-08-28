@@ -11,11 +11,6 @@ import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 
 public class Gitlet implements Serializable {
-    private TreeMap<String, Commit> commitTree; // Key=commit ID; value = commitMessage? Not sure...
-
-    public Gitlet() {
-        this.commitTree = new TreeMap<>();
-    }
 
     public void init() {
         if (GITLET_DIR.exists()) {
@@ -23,14 +18,12 @@ public class Gitlet implements Serializable {
         }
         createRepository();
         Commit initCommit = new Commit();
-        // Set the head pointer to master branch
+        /** Set the head pointer to master branch */
         writeContents(HEAD, join("refs", "heads", "master").getPath());
         saveCommit(initCommit, "master");
 
         Staging stagingArea = new Staging();
         writeObject(INDEX, stagingArea);
-        // ?????????? not sure
-        this.commitTree.put(initCommit.getUID(), initCommit);
     }
 
     public void add(String filename) {
@@ -68,8 +61,6 @@ public class Gitlet implements Serializable {
         /** Get current commit */
         Commit currCommit = getCurrentCommit();
         Blob blob = new Blob(filename, file);
-
-        // TODO Maybe stagingRemove doesn't have to be HashMap, HashSet instead
 
         if (stagingArea.stagingAdd.containsKey(filename)) {
             stagingArea.stagingAdd.remove(filename);
@@ -109,31 +100,26 @@ public class Gitlet implements Serializable {
         String currBranch = new File(readContentsAsString(HEAD)).getName();
 
         saveCommit(newCommit, currBranch);
-        this.commitTree.put(newCommit.getUID(), newCommit);
         stagingArea.clearStage();
         writeObject(INDEX, stagingArea);
     }
 
     public void log() {
         // TODO not taken into consideration branching
-        for (String s : this.commitTree.keySet()) {
-            System.out.println("===");
-            System.out.println("commit " + s);
-            System.out.println("Date: " + this.commitTree.get(s).getDate());
-            System.out.println(this.commitTree.get(s).getCommitMessage());
-            System.out.println();
+        Commit c = getCurrentCommit();
+        while (c.getParentID() != null) {
+            c.print();
+            c = readObject(join(COMMIT_DIR, c.getParentID()), Commit.class);
         }
+        c.print();
+
     }
 
     public void globalLog() {
         List<String> commits = plainFilenamesIn(COMMIT_DIR);
         for (String s : commits) {
             Commit c = readObject(join(COMMIT_DIR, s), Commit.class);
-            System.out.println("===");
-            System.out.println("commit " + c.getUID());
-            System.out.println("Date: " + c.getDate());
-            System.out.println(c.getCommitMessage());
-            System.out.println();
+            c.print();
         }
     }
 
@@ -226,6 +212,48 @@ public class Gitlet implements Serializable {
         System.out.println();
     }
 
+    public void checkoutFile(String filename) {
+        Commit currCommit = getCurrentCommit();
+        if (!currCommit.getFileMap().containsKey(filename)) {
+            exitWithError("File does not exist in that commit.");
+        }
+        String blobUID = currCommit.getFileMap().get(filename);
+        copyFile(blobUID);
+    }
+
+    public void checkoutFileWithCommit(String commitID, String filename) {
+        List<String> commits = plainFilenamesIn(COMMIT_DIR);
+        if (!commits.contains(commitID)) {
+            exitWithError("No commit with that id exists.");
+        }
+        Commit commit = readObject(join(COMMIT_DIR, commitID), Commit.class);
+        if (!commit.getFileMap().containsKey(filename)) {
+            exitWithError("File does not exist in that commit.");
+        }
+        String blobUID = commit.getFileMap().get(filename);
+        copyFile(blobUID);
+    }
+
+    public void checkoutBranch(String branchName) {
+        List<String> branches = plainFilenamesIn(HEADS_DIR);
+        if (!branches.contains(branchName)) {
+            exitWithError("No such branch exists.");
+        }
+        String currBranch = new File(readContentsAsString(HEAD)).getName();
+        if (currBranch.equals(branchName)) {
+            exitWithError("No need to checkout the current branch.");
+        }
+        Commit currCommit = getCurrentCommit();
+        writeContents(HEAD, join("refs", "heads", branchName).getPath());
+        Commit checkout = getCurrentCommit();
+        for (String s : plainFilenamesIn(CWD)) {
+            if (!currCommit.getFileMap().containsKey(s)) {
+                if (checkout.getFileMap().containsKey(s)) {
+                    exitWithError("There is an untracked file in the way; delete it, or add and commit it first.");
+                }
+            }
+        }
+    }
 
 
 
@@ -242,12 +270,15 @@ public class Gitlet implements Serializable {
         }
         /** Store current branch head */
         File branchname = join(HEADS_DIR, branch);
+        if (branchname.exists()) {
+            writeContents(branchname, commit.getUID());
+        }
         try {
             branchname.createNewFile();
+            writeContents(branchname, commit.getUID());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        writeContents(branchname, commit.getUID());
     }
 
 
@@ -255,6 +286,23 @@ public class Gitlet implements Serializable {
         String path = readContentsAsString(HEAD);
         String currCommitID = readContentsAsString(join(GITLET_DIR, path));
         return readObject(join(COMMIT_DIR, currCommitID), Commit.class);
+    }
+
+    private void copyFile(String blobUID) {
+        File file = join(BLOB_DIR, blobUID);
+        Blob blob = readObject(file, Blob.class);
+
+        File newFile = join(CWD, blob.getFilename());
+        if (newFile.exists()) {
+            writeContents(newFile, blob.getContent());
+        }
+
+        try {
+            newFile.createNewFile();
+            writeContents(newFile, blob.getContent());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

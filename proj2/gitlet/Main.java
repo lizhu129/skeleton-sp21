@@ -59,6 +59,21 @@ public class Main {
                 gitlet.status();
                 break;
             case "checkout":
+                switch (args.length){
+                    case 3:
+                        if (args[1].equals("--")){
+                            gitlet.checkoutFile(args[2]);
+                        }
+                        break;
+                    case 4:
+                        if (args[2].equals("--")){
+                            gitlet.checkoutFileWithCommit(args[1],args[3]);
+                        }
+                        break;
+                    case 2:
+                        gitlet.checkoutBranch(args[1]);
+                        break;
+                }
                 break;
             case "branch":
                 break;
