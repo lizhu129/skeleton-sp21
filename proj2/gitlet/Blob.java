@@ -13,7 +13,6 @@ import static gitlet.Utils.*;
 public class Blob implements Serializable {
 
     private String UID;
-    private String shortUID = this.UID.substring(0, 5);
     private String filename;
     private byte[] content;
 
@@ -25,10 +24,6 @@ public class Blob implements Serializable {
 
     public String getUID() {
         return UID;
-    }
-
-    public String getshortUID() {
-        return shortUID;
     }
 
     public String getFilename() {

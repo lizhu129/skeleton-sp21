@@ -5,6 +5,11 @@ import java.io.IOException;
 
 import static gitlet.Utils.join;
 
+/** Repository structure of .gitlet
+ *
+ *  @LiZhu
+ */
+
 public class Repository {
 
     public static final File CWD = new File(System.getProperty("user.dir"));

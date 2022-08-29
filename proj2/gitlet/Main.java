@@ -76,12 +76,20 @@ public class Main {
                 }
                 break;
             case "branch":
+                validateNumArgs(args, 2);
+                gitlet.branch(args[1]);
                 break;
             case "rm-branch":
+                validateNumArgs(args, 2);
+                gitlet.rmBranch(args[1]);
                 break;
             case "reset":
+                validateNumArgs(args, 2);
+                gitlet.reset(args[1]);
                 break;
             case "merge":
+                validateNumArgs(args, 2);
+                gitlet.merge(args[1]);
                 break;
             default:
                 Utils.exitWithError("No command with that name exists.");
