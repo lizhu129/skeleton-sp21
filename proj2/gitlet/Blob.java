@@ -19,7 +19,7 @@ public class Blob implements Serializable {
     public Blob(String filename, File file) {
         this.filename = filename;
         this.content = readContents(file);
-        this.UID = sha1(this.filename + this.content);
+        this.UID = sha1(this.content);
     }
 
     public String getUID() {

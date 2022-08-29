@@ -17,8 +17,8 @@ public class Main {
         }
         String firstArg = args[0];
 
-        if (!Repository.GITLET_DIR.exists()) {
-            Utils.message("Not in an initialized Gitlet directory.");
+        if (!Repository.GITLET_DIR.exists() && !firstArg.equals("init")) {
+            Utils.exitWithError("Not in an initialized Gitlet directory.");
         }
 
         Gitlet gitlet = new Gitlet();

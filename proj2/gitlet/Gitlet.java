@@ -37,9 +37,13 @@ public class Gitlet implements Serializable {
         Staging stagingArea = readObject(INDEX, Staging.class);
         /** Get the current commit */
         Commit currCommit = getCurrentCommit();
-        if (blob.getUID().equals(currCommit.getFileMap().get(filename))) {
-            if (stagingArea.stagingAdd.containsKey(filename)) {
-                stagingArea.stagingAdd.remove(filename);
+        if (currCommit.getFileMap().containsKey(filename)) {
+            if (!currCommit.getFileMap().get(filename).equals(blob.getUID())) {
+                stagingArea.stagingAdd.put(filename, blob.getUID());
+                blob.storeBlob();
+            }
+            if (stagingArea.stagingRemove.containsKey(filename)) {
+                stagingArea.stagingRemove.remove(filename);
             }
         } else {
             stagingArea.stagingAdd.put(filename, blob.getUID());
@@ -60,6 +64,8 @@ public class Gitlet implements Serializable {
         } else if (currCommit.getFileMap().containsKey(filename)) {
             stagingArea.stagingRemove.put(filename, blob.getUID());
             restrictedDelete(filename);
+        } else if (!currCommit.getFileMap().containsKey(filename)) {
+            stagingArea.stagingRemove.put(filename, blob.getUID());
         } else {
             exitWithError("No reason to remove the file.");
         }
@@ -149,32 +155,29 @@ public class Gitlet implements Serializable {
         System.out.println("=== Modifications Not Staged For Commit ===");
         Commit currCommit = getCurrentCommit();
         // Tracked in the current commit, changed in the working directory, but not staged;
-        for (String s : currCommit.getFileMap().keySet()) {
+        for (String s : plainFilenamesIn(CWD)) {
             File file = join(CWD, s);
             Blob blob = new Blob(s, file);
-            if (!currCommit.getFileMap().get(s).equals(blob.getUID()) && !stagingArea.stagingAdd.containsKey(s)) {
-                System.out.println(s + " (modified)");
+            if (currCommit.getFileMap().containsKey(s)) {
+                if (!currCommit.getFileMap().get(s).equals(blob.getUID()) && !stagingArea.stagingAdd.containsKey(s)) {
+                    System.out.println(s + " (modified)");
+                }
             }
-        }
-        // Staged for addition, but with different contents than in the working directory
-        for (String s : stagingArea.stagingAdd.keySet()) {
-            File file = join(CWD, s);
-            Blob blob = new Blob(s, file);
-            if (!stagingArea.stagingAdd.get(s).equals(blob.getUID())) {
+            // Staged for addition, but with different contents than in the working directory
+            if (stagingArea.stagingAdd.containsKey(s) && !stagingArea.stagingAdd.get(s).equals(blob.getUID())) {
                 System.out.println(s + " (modified)");
             }
         }
         // Staged for addition, but deleted in the working directory
         for (String s : stagingArea.stagingAdd.keySet()) {
-            File file = join(CWD, s);
-            if (!file.exists()) {
+            if (!join(CWD, s).exists()) {
                 System.out.println(s + " (deleted)");
             }
         }
         // Not staged for removal, but tracked in the current commit and deleted from the working directory
         for (String s : currCommit.getFileMap().keySet()) {
             File file = join(CWD, s);
-            if (!stagingArea.stagingRemove.containsKey(s) && !file.exists()) {
+            if (!stagingArea.stagingRemove.containsKey(s) && !join(CWD, s).exists()) {
                 System.out.println(s + " (deleted)");
             }
         }
@@ -376,16 +379,14 @@ public class Gitlet implements Serializable {
         }
         /** Store current branch head */
         File branchname = join(HEADS_DIR, branch);
+        if (!branchname.exists()) {
+            try {
+                branchname.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         writeContents(branchname, commit.getUID());
-        if (branchname.exists()) {
-            writeContents(branchname, commit.getUID());
-        }
-        try {
-            branchname.createNewFile();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /** Update fileMap in the current Commit */

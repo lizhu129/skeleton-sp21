@@ -37,7 +37,7 @@ public class Commit implements Serializable, Dumpable {
         this.date = new Date(0);
         this.commitMessage = "initial commit";
         this.parentID = null;
-        this.fileMap = null;
+        this.fileMap = new TreeMap<>();
         this.UID = sha1(this.date + this.commitMessage);
     }
 
