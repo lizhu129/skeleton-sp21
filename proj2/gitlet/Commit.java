@@ -86,7 +86,12 @@ public class Commit implements Serializable, Dumpable {
     // For testing purpose
     @Override
     public void dump() {
-        System.out.printf("date: %s%nmessage: %s%n", date , commitMessage);
+        System.out.println("msg: "+ this.commitMessage);
+        System.out.println("parent: "+this.parentID);
+        System.out.println("2nd parent: "+this.secondParent);
+        System.out.println("hash: "+this.UID);
+        System.out.println("Map Size: "+this.fileMap.size());
+        System.out.println("isSplit: "+ this.isSplit());
     }
 
 }

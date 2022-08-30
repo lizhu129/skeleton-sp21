@@ -21,8 +21,7 @@ public class Gitlet implements Serializable {
         }
         createRepository();
         Commit initCommit = new Commit();
-        /** Set the head pointer to master branch */
-        writeContents(HEAD, join("refs", "heads", "master").getPath());
+        setHead("master");
         saveCommit(initCommit, "master");
         Staging stagingArea = new Staging();
         writeObject(INDEX, stagingArea);
@@ -76,19 +75,16 @@ public class Gitlet implements Serializable {
     public void commit(String message) {
         Staging stagingArea = readObject(INDEX, Staging.class);
         if (stagingArea.stagingAdd.isEmpty() && stagingArea.stagingRemove.isEmpty()) {
-            throw error("No changes added to the commit.");
+            exitWithError("No changes added to the commit.");
         }
         if (message.isEmpty()) {
-            throw error("Please enter a commit message.");
+            exitWithError("Please enter a commit message.");
         }
         Commit currCommit = getCurrentCommit();
         Commit newCommit = new Commit(message, currCommit.getUID(), currCommit.getFileMap());
         stageCommit(newCommit);
-        /** Get current branch */
-        String currBranch = new File(readContentsAsString(HEAD)).getName();
-        saveCommit(newCommit, currBranch);
-        stagingArea.clearStage();
-        writeObject(INDEX, stagingArea);
+        saveCommit(newCommit, currBranch());
+        clearStaging(stagingArea);
     }
 
     public void log() {
@@ -126,11 +122,10 @@ public class Gitlet implements Serializable {
     public void status() {
         /** Branches */
         System.out.println("=== Branches ===");
-        String currBranch = new File(readContentsAsString(HEAD)).getName();
-        System.out.println("*" + currBranch);
+        System.out.println("*" + currBranch());
         List<String> heads = plainFilenamesIn(HEADS_DIR);
         for (String s : heads) {
-            if (!s.equals(currBranch)) {
+            if (!s.equals(currBranch())) {
                 System.out.println(s);
             }
         }
@@ -221,8 +216,7 @@ public class Gitlet implements Serializable {
         if (!branches.contains(branchName)) {
             exitWithError("No such branch exists.");
         }
-        String currBranch = new File(readContentsAsString(HEAD)).getName();
-        if (currBranch.equals(branchName)) {
+        if (currBranch().equals(branchName)) {
             exitWithError("No need to checkout the current branch.");
         }
         Commit currCommit = getCurrentCommit();
@@ -231,8 +225,7 @@ public class Gitlet implements Serializable {
         Staging stagingArea = readObject(INDEX, Staging.class);
         checkUntracked(currCommit, checkout, stagingArea);
         checkoutFiles(currCommit, checkout);
-        stagingArea.clearStage();
-        writeObject(INDEX, stagingArea);
+        clearStaging(stagingArea);
     }
 
     public void branch(String branchName) {
@@ -249,7 +242,7 @@ public class Gitlet implements Serializable {
         Commit currCommit = getCurrentCommit();
         currCommit.setSplit(true);
         currCommit.getBranches().add(branchName);
-        currCommit.getBranches().add(new File(readContentsAsString(HEAD)).getName());
+        currCommit.getBranches().add(currBranch());
         writeObject(join(COMMIT_DIR, currCommit.getUID()), currCommit);
         writeContents(file, currCommit.getUID());
     }
@@ -259,8 +252,7 @@ public class Gitlet implements Serializable {
         if (!branches.contains(branchName)) {
             exitWithError("A branch with that name does not exist.");
         }
-        String currBranch = new File(readContentsAsString(HEAD)).getName();
-        if (currBranch.equals(branchName)) {
+        if (currBranch().equals(branchName)) {
             exitWithError("Cannot remove the current branch.");
         }
         File file = join(HEADS_DIR, branchName);
@@ -278,9 +270,8 @@ public class Gitlet implements Serializable {
         Staging stagingArea = readObject(INDEX, Staging.class);
         checkUntracked(currCommit, resetCommit, stagingArea);
         checkoutFiles(currCommit, resetCommit);
-        File file = join(HEADS_DIR, new File(readContentsAsString(HEAD)).getName());
-        writeContents(file, s);
-        stagingArea.clearStage();
+        writeContents(join(HEADS_DIR, currBranch()), s);
+        clearStaging(stagingArea);
     }
 
     public void merge(String branchName) {
@@ -292,7 +283,7 @@ public class Gitlet implements Serializable {
         if (!branches.contains(branchName)) {
             exitWithError("A branch with that name does not exist.");
         }
-        String currBranch = new File(readContentsAsString(HEAD)).getName();
+        String currBranch = currBranch();
         if (currBranch.equals(branchName)) {
             exitWithError("Cannot merge a branch with itself.");
         }
@@ -301,7 +292,6 @@ public class Gitlet implements Serializable {
         checkUntracked(currCommit, given, stagingArea);
 
         /** Get split point */
-        // TODO???
         Commit split = currCommit;
         while (split.isSplit() == false) {
             split = readObject(join(COMMIT_DIR, split.getParentID()), Commit.class);
@@ -340,8 +330,8 @@ public class Gitlet implements Serializable {
 
             if (!currCommit.getFileMap().get(s).equals(given.getFileMap().get(s))) {
                 message("Encountered a merge conflict.");
-                byte[] currentBytes = null;
-                byte[] givenBytes = null;
+                byte[] currentBytes = "".getBytes();
+                byte[] givenBytes = "".getBytes();
                 if (currCommit.getFileMap().containsKey(s)) {
                     currentBytes = readContents(join(BLOB_DIR, currCommit.getFileMap().get(s)));
                 }
@@ -360,8 +350,7 @@ public class Gitlet implements Serializable {
             newCommit.setSecondParent(given.getUID());
             stageCommit(newCommit);
             saveCommit(newCommit, currBranch);
-            stagingArea.clearStage();
-            writeObject(INDEX,stagingArea);
+            clearStaging(stagingArea);
         }
     }
 
@@ -382,6 +371,7 @@ public class Gitlet implements Serializable {
         if (!branchname.exists()) {
             try {
                 branchname.createNewFile();
+                writeContents(branchname, commit.getUID());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -401,8 +391,7 @@ public class Gitlet implements Serializable {
     }
 
     private Commit getCurrentCommit() {
-        String path = readContentsAsString(HEAD);
-        String currCommitID = readContentsAsString(join(GITLET_DIR, path));
+        String currCommitID = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
         return readObject(join(COMMIT_DIR, currCommitID), Commit.class);
     }
 
@@ -452,4 +441,19 @@ public class Gitlet implements Serializable {
             } else { return null; }
         } else { return null; }
     }
+
+    private void clearStaging(Staging sa) {
+        sa.clearStage();
+        writeObject(INDEX, sa);
+    }
+
+    private void setHead(String branch) {
+        writeContents(HEAD, join("refs", "heads", branch).getPath());
+    }
+
+    private String currBranch() {
+        return new File(readContentsAsString(HEAD)).getName();
+    }
+
 }
+

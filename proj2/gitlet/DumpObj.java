@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.File;
+import java.util.List;
 
 /** A debugging class whose main program may be invoked as follows:
  *      java gitlet.DumpObj FILE...
@@ -32,8 +33,10 @@ public class DumpObj {
     /** Deserialize and apply dump to the contents of each of the files
      *  in FILES. */
     public static void main(String... files) {
-        for (String fileName : files) {
-            Dumpable obj = Utils.readObject(new File(fileName),
+        File file = new File("/Users/lizhu/test-gitlet/.gitlet/objects/commits");
+        List<String> a = Utils.plainFilenamesIn(file);
+        for (String fileName : a) {
+            Dumpable obj = Utils.readObject(Utils.join(file, fileName),
                                             Dumpable.class);
             obj.dump();
             System.out.println("---");
