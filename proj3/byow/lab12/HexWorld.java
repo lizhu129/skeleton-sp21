@@ -1,15 +1,19 @@
 package byow.lab12;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
-import byow.TileEngine.TERenderer;
-import byow.TileEngine.TETile;
-import byow.TileEngine.Tileset;
+import org.junit.jupiter.api.Test;
 
-import java.util.Random;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Draws a world consisting of hexagonal regions.
  */
 public class HexWorld {
+    @Test
+    public void testSmall() {
+        assertEquals("yip", "yip");
+    }
+
+
 }
+
+

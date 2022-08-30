@@ -1,10 +1,10 @@
 package Dog;
 
-import static org.junit.Assert.*;
-import org.junit.Test;
 import org.testng.annotations.Test;
 
-public class DogTest {    
+import static org.testng.AssertJUnit.assertEquals;
+
+public class DogTest {
     @Test
     public void testSmall() {
         Dog d = new Dog(3);

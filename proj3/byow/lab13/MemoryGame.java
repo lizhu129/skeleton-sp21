@@ -1,10 +1,8 @@
 package byow.lab13;
 
-import byow.Core.RandomUtils;
-import edu.princeton.cs.introcs.StdDraw;
+import byow.InputDemo.StdDraw;
 
-import java.awt.Color;
-import java.awt.Font;
+import java.awt.*;
 import java.util.Random;
 
 public class MemoryGame {

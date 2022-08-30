@@ -1,6 +1,6 @@
 package byow.Networking;
 
-import edu.princeton.cs.introcs.StdDraw;
+import byow.InputDemo.StdDraw;
 
 import java.io.*;
 import java.net.ServerSocket;
