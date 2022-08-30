@@ -2,6 +2,7 @@ package gitlet;
 
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.TreeMap;
@@ -15,7 +16,7 @@ import static gitlet.Utils.sha1;
  */
 public class Commit implements Serializable, Dumpable {
     private String UID;
-    private Date date;
+    private String date;
     private String commitMessage;
     private String parentID;
     private TreeMap<String, String> fileMap; // <filename, UID>
@@ -24,7 +25,7 @@ public class Commit implements Serializable, Dumpable {
     private HashSet<String> branches;
 
     public Commit(String commitMessage, String parentID, TreeMap<String, String> fileMap) {
-        this.date = new Date(System.currentTimeMillis());
+        this.date = new SimpleDateFormat("E MMM dd HH:mm:ss yyyy").format(new Date()) + " -0800";
         this.commitMessage = commitMessage;
         this.parentID = parentID;
         this.fileMap = fileMap;
@@ -34,7 +35,7 @@ public class Commit implements Serializable, Dumpable {
     }
 
     public Commit() {
-        this.date = new Date(0);
+        this.date = new SimpleDateFormat("E MMM dd HH:mm:ss yyyy").format(new Date(0)) + " -0800";
         this.commitMessage = "initial commit";
         this.parentID = null;
         this.fileMap = new TreeMap<>();
@@ -45,7 +46,7 @@ public class Commit implements Serializable, Dumpable {
         return UID;
     }
 
-    public Date getDate() {
+    public String getDate() {
         return date;
     }
 
