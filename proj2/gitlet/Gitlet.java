@@ -220,7 +220,7 @@ public class Gitlet implements Serializable {
             exitWithError("No need to checkout the current branch.");
         }
         Commit currCommit = getCurrentCommit();
-        writeContents(HEAD, join("refs", "heads", branchName).getPath());
+        setHead(branchName);
         Commit checkout = getCurrentCommit();
         Staging stagingArea = readObject(INDEX, Staging.class);
         checkUntracked(currCommit, checkout, stagingArea);
@@ -292,8 +292,8 @@ public class Gitlet implements Serializable {
         checkUntracked(currCommit, given, stagingArea);
 
         /** Get split point */
-        Commit split = currCommit;
-        while (split.isSplit() == false) {
+        Commit split = given;
+        while (!split.isSplit() && !split.getBranches().contains(currBranch)) {
             split = readObject(join(COMMIT_DIR, split.getParentID()), Commit.class);
         }
 
@@ -306,52 +306,52 @@ public class Gitlet implements Serializable {
             System.out.println("Current branch fast-forwarded.");
             System.exit(0);
         }
-        HashSet<String> files = new HashSet<>();
-        files.addAll(currCommit.getFileMap().keySet());
-        files.addAll(given.getFileMap().keySet());
-        for (String s : files) {
-            // not in split
-            if (!split.getFileMap().containsKey(s)) {
-                // not in split, not in current, but in other
-                if (!currCommit.getFileMap().containsKey(s)) {
+
+        for (String s : given.getFileMap().keySet()) {
+            if (split.getFileMap().containsKey(s) && currCommit.getFileMap().containsKey(s)) {
+                if (!split.getFileMap().get(s).equals(given.getFileMap().get(s)) &&
+                        split.getFileMap().get(s).equals(currCommit.getFileMap().get(s))) {
                     copyFile(given.getFileMap().get(s));
                     stagingArea.stagingAdd.put(s, given.getFileMap().get(s));
                 }
-            } else {
-                if (!given.getFileMap().get(s).equals(split.getFileMap().get(s)) && currCommit.getFileMap().get(s).equals(split.getFileMap().get(s))) {
-                    copyFile(given.getFileMap().get(s));
-                    stagingArea.stagingAdd.put(s, given.getFileMap().get(s));
+            }
+            if (!split.getFileMap().containsKey(s) && !currCommit.getFileMap().containsKey(s)) {
+                copyFile(given.getFileMap().get(s));
+                stagingArea.stagingAdd.put(s, given.getFileMap().get(s));
+            }
+            if (currCommit.getFileMap().containsKey(s)) {
+                if (!currCommit.getFileMap().get(s).equals(given.getFileMap().get(s))) {
+                    mergeConflict(currCommit, given, s, stagingArea);
                 }
-                if (currCommit.getFileMap().get(s).equals(split.getFileMap().get(s)) && !given.getFileMap().containsKey(s)) {
+            }
+        }
+
+        for (String s : split.getFileMap().keySet()) {
+            if (currCommit.getFileMap().containsKey(s)) {
+                if (currCommit.getFileMap().get(s).equals(split.getFileMap().get(s)) &&
+                !given.getFileMap().containsKey(s)) {
                     restrictedDelete(join(CWD, s));
                     stagingArea.stagingRemove.remove(s);
                 }
             }
-
-            if (!currCommit.getFileMap().get(s).equals(given.getFileMap().get(s))) {
-                message("Encountered a merge conflict.");
-                byte[] currentBytes = "".getBytes();
-                byte[] givenBytes = "".getBytes();
-                if (currCommit.getFileMap().containsKey(s)) {
-                    currentBytes = readContents(join(BLOB_DIR, currCommit.getFileMap().get(s)));
+            if (given.getFileMap().containsKey(s) && !currCommit.getFileMap().containsKey(s)) {
+                if (!split.getFileMap().get(s).equals(given.getFileMap().get(s))) {
+                    mergeConflict(currCommit, given, s, stagingArea);
                 }
-                if (given.getFileMap().containsKey(s)) {
-                    givenBytes = readContents(join(BLOB_DIR, given.getFileMap().get(s)));
-                }
-                File file = join(CWD, s);
-                writeContents(file, "<<<<<<< HEAD\n",currentBytes,"=======\n",givenBytes,">>>>>>>\n");
-                Blob blob = new Blob(s, file);
-                blob.storeBlob();
-                stagingArea.stagingAdd.put(s, blob.getUID());
             }
-            writeObject(INDEX,stagingArea);
-            Commit newCommit = new Commit("Merged "+ branchName +" into "+ currBranch +".",
-                    currCommit.getUID(), currCommit.getFileMap());
-            newCommit.setSecondParent(given.getUID());
-            stageCommit(newCommit);
-            saveCommit(newCommit, currBranch);
-            clearStaging(stagingArea);
+            if (currCommit.getFileMap().containsKey(s) && !given.getFileMap().containsKey(s)) {
+                if (!split.getFileMap().get(s).equals(currCommit.getFileMap().get(s))) {
+                    mergeConflict(currCommit, given, s, stagingArea);
+                }
+            }
         }
+        writeObject(INDEX,stagingArea);
+        Commit newCommit = new Commit("Merged "+ branchName +" into "+ currBranch +".",
+                currCommit.getUID(), currCommit.getFileMap());
+        newCommit.setSecondParent(given.getUID());
+        stageCommit(newCommit);
+        saveCommit(newCommit, currBranch);
+        clearStaging(stagingArea);
     }
 
 
@@ -453,6 +453,23 @@ public class Gitlet implements Serializable {
 
     private String currBranch() {
         return new File(readContentsAsString(HEAD)).getName();
+    }
+
+    private void mergeConflict(Commit currCommit, Commit given, String s, Staging sa) {
+        message("Encountered a merge conflict.");
+        byte[] currentBytes = "".getBytes();
+        byte[] givenBytes = "".getBytes();
+        if (currCommit.getFileMap().containsKey(s)) {
+            currentBytes = readContents(join(BLOB_DIR, currCommit.getFileMap().get(s)));
+        }
+        if (given.getFileMap().containsKey(s)) {
+            givenBytes = readContents(join(BLOB_DIR, given.getFileMap().get(s)));
+        }
+        File file = join(CWD, s);
+        writeContents(file, "<<<<<<< HEAD\n",currentBytes,"=======\n",givenBytes,">>>>>>>\n");
+        Blob blob = new Blob(s, file);
+        blob.storeBlob();
+        sa.stagingAdd.put(s, blob.getUID());
     }
 
 }
