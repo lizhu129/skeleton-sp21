@@ -456,13 +456,13 @@ public class Gitlet implements Serializable {
 
     private void mergeConflict(Commit currCommit, Commit given, String s, Staging sa) {
         message("Encountered a merge conflict.");
-        byte[] currentBytes = "".getBytes();
-        byte[] givenBytes = "".getBytes();
+        String currentBytes = "";
+        String givenBytes = "";
         if (currCommit.getFileMap().containsKey(s)) {
-            currentBytes = readContents(join(BLOB_DIR, currCommit.getFileMap().get(s)));
+            currentBytes = readContentsAsString(join(BLOB_DIR, currCommit.getFileMap().get(s)));
         }
         if (given.getFileMap().containsKey(s)) {
-            givenBytes = readContents(join(BLOB_DIR, given.getFileMap().get(s)));
+            givenBytes = readContentsAsString(join(BLOB_DIR, given.getFileMap().get(s)));
         }
         File file = join(CWD, s);
         writeContents(file, "<<<<<<< HEAD\n",currentBytes,"=======\n",givenBytes,">>>>>>>\n");
